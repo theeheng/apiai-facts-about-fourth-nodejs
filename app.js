@@ -130,17 +130,24 @@ function getRandomFact (facts) {
   return randomFact;
 }
 
+function hasSurfaceCapability (capabilities, requestedCapability) {
+    if (!capabilities) {
+      return false;
+    }
+    return capabilities.includes(requestedCapability);
+  }
+
 // [START fourth_facts]
 expressapp.post('/', function (req, res) {
   const app = new apiaiapp.ApiAiApp({request: req, response: res});
   console.log('Request headers: ' + JSON.stringify(req.headers));
   console.log('Request body: ' + JSON.stringify(req.body));
 
-console.log(app.getSurfaceCapabilities());
+  const capabilities = app.getSurfaceCapabilities();
 
   // Greet the user and direct them to next turn
   function unhandledDeepLinks (app) {
-    if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+    if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
           app.ask(app.buildRichResponse()
             .addSimpleResponse(`Welcome to Facts about Fourth! I'd really rather \
     not talk about ${app.getRawInput()}. Wouldn't you rather talk about \
@@ -174,7 +181,7 @@ console.log(app.getSurfaceCapabilities());
     if (factCategory === FACT_TYPE.HISTORY) {
       let fact = getRandomFact(historyFacts);
       if (fact === null) {
-        if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+        if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
           let suggestions = ['Headquarters'];
           if (!app.data.catFacts || app.data.catFacts.length > 0) {
             suggestions.push('Cats');
@@ -191,7 +198,7 @@ console.log(app.getSurfaceCapabilities());
 
       let factPrefix = 'Sure, here\'s a history fact. ';
       app.data.historyFacts = Array.from(historyFacts);
-      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+      if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
               let image = getRandomImage(GOOGLE_IMAGES);
               app.ask(app.buildRichResponse()
                 .addSimpleResponse(factPrefix)
@@ -207,7 +214,7 @@ console.log(app.getSurfaceCapabilities());
     } else if (factCategory === FACT_TYPE.HEADQUARTERS) {
       let fact = getRandomFact(hqFacts);
       if (fact === null) {
-        if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+        if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
 	          let suggestions = ['History'];
 	          if (!app.data.catFacts || app.data.catFacts.length > 0) {
 	            suggestions.push('Cats');
@@ -223,7 +230,7 @@ console.log(app.getSurfaceCapabilities());
 
       let factPrefix = 'Okay, here\'s a headquarters fact. ';
       app.data.hqFacts = Array.from(hqFacts);
-      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+      if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
               let image = getRandomImage(GOOGLE_IMAGES);
               app.ask(app.buildRichResponse()
                 .addSimpleResponse(factPrefix)
@@ -237,7 +244,7 @@ console.log(app.getSurfaceCapabilities());
       }
       return;
     } else {
-      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+      if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
               app.ask(app.buildRichResponse()
                 .addSimpleResponse(`Sorry, I didn't understand. I can tell you about \
       Fourth's history, or its  headquarters. Which one do you want to \
@@ -263,7 +270,7 @@ console.log(app.getSurfaceCapabilities());
         parameters);
       // Replace outgoing cat-facts context with lifespan = 0 to end it
       app.setContext(CAT_CONTEXT, END_LIFESPAN, {});
-      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+      if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
               app.ask(app.buildRichResponse()
                 .addSimpleResponse('Looks like you\'ve heard all there is to know ' +
                   'about cats. Would you like to hear about Fourth?', NO_INPUTS)
@@ -280,7 +287,7 @@ console.log(app.getSurfaceCapabilities());
     let factSpeech = '<speak>' + factPrefix + fact +
       NEXT_FACT_DIRECTIVE + '</speak>';
     app.data.catFacts = Array.from(catFacts);
-    if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+    if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
           app.ask(app.buildRichResponse()
             .addSimpleResponse(`<speak>${factPrefix}</speak>`)
             .addBasicCard(app.buildBasicCard(fact)
