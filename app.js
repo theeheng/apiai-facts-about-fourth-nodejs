@@ -14,7 +14,7 @@
 'use strict';
 
 process.env.DEBUG = 'actions-on-google:*';
-let apiaiapp = require('actions-on-google').ApiAiApp;
+let apiaiapp = require('actions-on-google');
 let express = require('express');
 let bodyParser = require('body-parser');
 
@@ -132,9 +132,11 @@ function getRandomFact (facts) {
 
 // [START fourth_facts]
 expressapp.post('/', function (req, res) {
-  const app = new apiaiapp({request: req, response: res});
+  const app = new apiaiapp.ApiAiApp({request: req, response: res});
   console.log('Request headers: ' + JSON.stringify(req.headers));
   console.log('Request body: ' + JSON.stringify(req.body));
+
+console.log(app.getSurfaceCapabilities());
 
   // Greet the user and direct them to next turn
   function unhandledDeepLinks (app) {
@@ -189,7 +191,7 @@ expressapp.post('/', function (req, res) {
 
       let factPrefix = 'Sure, here\'s a history fact. ';
       app.data.historyFacts = Array.from(historyFacts);
-      if (true) {
+      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
               let image = getRandomImage(GOOGLE_IMAGES);
               app.ask(app.buildRichResponse()
                 .addSimpleResponse(factPrefix)
