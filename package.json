@@ -15,7 +15,7 @@
     "deploy": "gcloud app deploy"
   },
   "dependencies": {
-    "actions-on-google": "1.1.0",
+    "actions-on-google": "^1.0.0",
     "body-parser": "^1.15.2",
     "express": "^4.15.3"
   },
