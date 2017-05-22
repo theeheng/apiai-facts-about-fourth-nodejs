@@ -134,7 +134,7 @@ function hasSurfaceCapability (capabilities, requestedCapability) {
     if (!capabilities) {
       return false;
     }
-    return capabilities.includes(requestedCapability);
+    return capabilities.indexOf(requestedCapability) >= 0;
   }
 
 // [START fourth_facts]
@@ -144,7 +144,8 @@ expressapp.post('/', function (req, res) {
   console.log('Request body: ' + JSON.stringify(req.body));
 
   const capabilities = app.getSurfaceCapabilities();
-
+ console.log('Capabilities: ' + capabilities);
+ 
   // Greet the user and direct them to next turn
   function unhandledDeepLinks (app) {
     if (hasSurfaceCapability(capabilities, app.SurfaceCapabilities.SCREEN_OUTPUT)) {
