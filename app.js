@@ -14,7 +14,7 @@
 'use strict';
 
 process.env.DEBUG = 'actions-on-google:*';
-let Assistant = require('actions-on-google').ApiAiApp;
+let Assistant = require('actions-on-google').ApiAiAssistant;
 let express = require('express');
 let bodyParser = require('body-parser');
 
@@ -61,54 +61,11 @@ const CAT_FACTS = new Set([
   'Cats descend from other cats.'
 ]);
 
-const GOOGLE_IMAGES = [
-  [
-    'https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Search_GSA.2e16d0ba.fill-300x300.png',
-    'Google app logo'
-  ],
-  [
-    'https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Google_Logo.max-900x900.png',
-    'Google logo'
-  ],
-  [
-    'https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Dinosaur-skeleton-at-Google.max-900x900.jpg',
-    'Stan the Dinosaur at Googleplex'
-  ],
-  [
-    'https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Wide-view-of-Google-campus.max-900x900.jpg',
-    'Googleplex'
-  ],
-  [
-    'https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Bikes-on-the-Google-campus.2e16d0ba.fill-300x300.jpg',
-    'Biking at Googleplex'
-  ]
-];
-
-const CAT_IMAGE = [
-  'https://developers.google.com/web/fundamentals/accessibility/semantics-builtin/imgs/160204193356-01-cat-500.jpg',
-  'Gray Cat'
-];
-
-const LINK_OUT_TEXT = 'Learn more';
-const GOOGLE_LINK = 'https://www.google.com/about/';
-const CATS_LINK = 'https://www.google.com/search?q=cats';
 const NEXT_FACT_DIRECTIVE = ' Would you like to hear another fact?';
-const CONFIRMATION_SUGGESTIONS = ['Sure', 'No thanks'];
-
-const NO_INPUTS = [
-  'I didn\'t hear that.',
-  'If you\'re still there, say that again.',
-  'We can stop here. See you soon.'
-];
 
 // This sample uses this sound from Freesound:
 // 'cat meow' by tuberatanka (https://www.freesound.org/people/tuberatanka/sounds/110011/)
 const MEOW_SRC = 'https://freesound.org/data/previews/110/110011_1537422-lq.mp3';
-
-function getRandomImage (images) {
-  let randomIndex = Math.floor(Math.random() * images.length);
-  return images[randomIndex];
-}
 
 function getRandomFact (facts) {
   if (facts.size <= 0) {
@@ -138,20 +95,10 @@ app.post('/', function (req, res) {
 
   // Greet the user and direct them to next turn
   function unhandledDeepLinks (assistant) {
-    if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-          assistant.ask(assistant.buildRichResponse()
-            .addSimpleResponse(`Welcome to Facts about Fourth! I'd really rather \
-    not talk about ${assistant.getRawInput()}. Wouldn't you rather talk about \
-    Fourth? I can tell you about Fourth's history or its headquarters. \
-    Which do you want to hear about?`)
-            .addSuggestions(['History', 'Headquarters']), NO_INPUTS);
-        } else {
-          assistant.ask(`Welcome to Facts about Fourth! I'd really rather \
-    not talk about ${assistant.getRawInput()}. \
-    Wouldn't you rather talk about Fourth? I can tell you about \
-    Fourth's history or its headquarters. Which do you want to hear about?`,
-            NO_INPUTS);
-    }
+    assistant.ask(`Welcome to Facts about Fourth! I'd really rather \
+      not talk about ${assistant.getRawInput()}. \
+      Wouldn't you rather talk about Fourth? I can tell you about \
+      Fourth's history or its headquarters. Which do you want to hear about?`);
   }
 
   // Say a Fourth fact
@@ -172,80 +119,32 @@ app.post('/', function (req, res) {
     if (factCategory === FACT_TYPE.HISTORY) {
       let fact = getRandomFact(historyFacts);
       if (fact === null) {
-        if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-          let suggestions = ['Headquarters'];
-          if (!assistant.data.catFacts || assistant.data.catFacts.length > 0) {
-            suggestions.push('Cats');
-          }
-          assistant.ask(assistant.buildRichResponse()
-            .addSimpleResponse(noFactsLeft(assistant, factCategory, FACT_TYPE.HEADQUARTERS))
-            .addSuggestions(suggestions), NO_INPUTS);
-        } else {
-          assistant.ask(noFactsLeft(assistant, factCategory, FACT_TYPE.HEADQUARTERS),
-            NO_INPUTS);
-        }
+        assistant.ask(noFactsLeft(assistant, factCategory,
+            FACT_TYPE.HEADQUARTERS));
         return;
       }
 
       let factPrefix = 'Sure, here\'s a history fact. ';
       assistant.data.historyFacts = Array.from(historyFacts);
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-              let image = getRandomImage(GOOGLE_IMAGES);
-              assistant.ask(assistant.buildRichResponse()
-                .addSimpleResponse(factPrefix)
-                .addBasicCard(assistant.buildBasicCard(fact)
-                  .addButton(LINK_OUT_TEXT, GOOGLE_LINK)
-                  .setImage(image[0], image[1]))
-                .addSimpleResponse(NEXT_FACT_DIRECTIVE)
-                .addSuggestions(CONFIRMATION_SUGGESTIONS), NO_INPUTS);
-            } else {
-              assistant.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE, NO_INPUTS);
-      }
+      assistant.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE);
       return;
     } else if (factCategory === FACT_TYPE.HEADQUARTERS) {
       let fact = getRandomFact(hqFacts);
       if (fact === null) {
-        if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-	          let suggestions = ['History'];
-	          if (!assistant.data.catFacts || assistant.data.catFacts.length > 0) {
-	            suggestions.push('Cats');
-	          }
-	          assistant.ask(assistant.buildRichResponse()
-	            .addSimpleResponse(noFactsLeft(assistant, factCategory, FACT_TYPE.HISTORY))
-	            .addSuggestions(suggestions), NO_INPUTS);
-	        } else {
-	          assistant.ask(noFactsLeft(assistant, factCategory, FACT_TYPE.HISTORY), NO_INPUTS);
-        }
+        assistant.ask(noFactsLeft(assistant, factCategory,
+            FACT_TYPE.HISTORY));
         return;
       }
 
       let factPrefix = 'Okay, here\'s a headquarters fact. ';
       assistant.data.hqFacts = Array.from(hqFacts);
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-              let image = getRandomImage(GOOGLE_IMAGES);
-              assistant.ask(assistant.buildRichResponse()
-                .addSimpleResponse(factPrefix)
-                .addBasicCard(assistant.buildBasicCard(fact)
-                  .setImage(image[0], image[1])
-                  .addButton(LINK_OUT_TEXT, GOOGLE_LINK))
-                .addSimpleResponse(NEXT_FACT_DIRECTIVE)
-                .addSuggestions(CONFIRMATION_SUGGESTIONS), NO_INPUTS);
-            } else {
-              assistant.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE, NO_INPUTS);
-      }
+      assistant.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE);
       return;
     } else {
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-              assistant.ask(assistant.buildRichResponse()
-                .addSimpleResponse(`Sorry, I didn't understand. I can tell you about \
-      Fourth's history, or its  headquarters. Which one do you want to \
-      hear about?`)
-                .addSuggestions(['History', 'Headquarters']), NO_INPUTS);
-            } else {
-              assistant.ask(`Sorry, I didn't understand. I can tell you about \
-      Fourth's history, or its headquarters. Which one do you want to \
-      hear about?`, NO_INPUTS);
-      }
+      // Conversation repair is handled in API.AI, but this is a safeguard
+      assistant.ask(`Sorry, I didn't understand. I can tell you about \
+        Fourth's history, or its headquarters. Which one do you want to \
+        hear about?`);
     }
   }
 
@@ -261,15 +160,8 @@ app.post('/', function (req, res) {
         parameters);
       // Replace outgoing cat-facts context with lifespan = 0 to end it
       assistant.setContext(CAT_CONTEXT, END_LIFESPAN, {});
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-              assistant.ask(assistant.buildRichResponse()
-                .addSimpleResponse('Looks like you\'ve heard all there is to know ' +
-                  'about cats. Would you like to hear about Fourth?', NO_INPUTS)
-                .addSuggestions(CONFIRMATION_SUGGESTIONS));
-            } else {
-              assistant.ask('Looks like you\'ve heard all there is to know ' +
-                'about cats. Would you like to hear about Fourth?', NO_INPUTS);
-      }
+      assistant.ask('Looks like you\'ve heard all there is to know ' +
+        'about cats. Would you like to hear about Fourth?');
       return;
     }
 
@@ -278,18 +170,7 @@ app.post('/', function (req, res) {
     let factSpeech = '<speak>' + factPrefix + fact +
       NEXT_FACT_DIRECTIVE + '</speak>';
     assistant.data.catFacts = Array.from(catFacts);
-    if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-          assistant.ask(assistant.buildRichResponse()
-            .addSimpleResponse(`<speak>${factPrefix}</speak>`)
-            .addBasicCard(assistant.buildBasicCard(fact)
-              .setImage(CAT_IMAGE[0], CAT_IMAGE[1])
-              .addButton(LINK_OUT_TEXT, CATS_LINK))
-            .addSimpleResponse(NEXT_FACT_DIRECTIVE)
-            .addSuggestions(CONFIRMATION_SUGGESTIONS), NO_INPUTS);
-        } else {
-          assistant.ask(factSpeech,
-            NO_INPUTS);
-    }
+    assistant.ask(factSpeech);
     return;
   }
 
