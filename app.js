@@ -189,7 +189,7 @@ expressapp.post('/', function (req, res) {
 
       let factPrefix = 'Sure, here\'s a history fact. ';
       app.data.historyFacts = Array.from(historyFacts);
-      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+      if (true) {
               let image = getRandomImage(GOOGLE_IMAGES);
               app.ask(app.buildRichResponse()
                 .addSimpleResponse(factPrefix)
