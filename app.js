@@ -14,12 +14,12 @@
 'use strict';
 
 process.env.DEBUG = 'actions-on-google:*';
-let actionapp = require('actions-on-google').ApiAiApp;
+let apiaiapp = require('actions-on-google').ApiAiApp;
 let express = require('express');
 let bodyParser = require('body-parser');
 
-let app = express();
-app.use(bodyParser.json({type: 'application/json'}));
+let expressapp = express();
+expressapp.use(bodyParser.json({type: 'application/json'}));
 
 // API.AI actions
 const UNRECOGNIZED_DEEP_LINK = 'deeplink.unknown';
@@ -131,23 +131,23 @@ function getRandomFact (facts) {
 }
 
 // [START fourth_facts]
-app.post('/', function (req, res) {
-  const assistant = new actionapp({request: req, response: res});
+expressapp.post('/', function (req, res) {
+  const app = new apiaiapp({request: req, response: res});
   console.log('Request headers: ' + JSON.stringify(req.headers));
   console.log('Request body: ' + JSON.stringify(req.body));
 
   // Greet the user and direct them to next turn
-  function unhandledDeepLinks (assistant) {
-    if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-          assistant.ask(assistant.buildRichResponse()
+  function unhandledDeepLinks (app) {
+    if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+          app.ask(app.buildRichResponse()
             .addSimpleResponse(`Welcome to Facts about Fourth! I'd really rather \
-    not talk about ${assistant.getRawInput()}. Wouldn't you rather talk about \
+    not talk about ${app.getRawInput()}. Wouldn't you rather talk about \
     Fourth? I can tell you about Fourth's history or its headquarters. \
     Which do you want to hear about?`)
             .addSuggestions(['History', 'Headquarters']), NO_INPUTS);
         } else {
-          assistant.ask(`Welcome to Facts about Fourth! I'd really rather \
-    not talk about ${assistant.getRawInput()}. \
+          app.ask(`Welcome to Facts about Fourth! I'd really rather \
+    not talk about ${app.getRawInput()}. \
     Wouldn't you rather talk about Fourth? I can tell you about \
     Fourth's history or its headquarters. Which do you want to hear about?`,
             NO_INPUTS);
@@ -155,94 +155,94 @@ app.post('/', function (req, res) {
   }
 
   // Say a Fourth fact
-  function tellFourthFact (assistant) {
-    let historyFacts = assistant.data.historyFacts
-      ? new Set(assistant.data.historyFacts) : HISTORY_FACTS;
-    let hqFacts = assistant.data.hqFacts
-      ? new Set(assistant.data.hqFacts) : HQ_FACTS;
+  function tellFourthFact (app) {
+    let historyFacts = app.data.historyFacts
+      ? new Set(app.data.historyFacts) : HISTORY_FACTS;
+    let hqFacts = app.data.hqFacts
+      ? new Set(app.data.hqFacts) : HQ_FACTS;
 
     if (historyFacts.size === 0 && hqFacts.size === 0) {
-      assistant.tell('Actually it looks like you heard it all. ' +
+      app.tell('Actually it looks like you heard it all. ' +
         'Thanks for listening!');
       return;
     }
 
-    let factCategory = assistant.getArgument(CATEGORY_ARGUMENT);
+    let factCategory = app.getArgument(CATEGORY_ARGUMENT);
 
     if (factCategory === FACT_TYPE.HISTORY) {
       let fact = getRandomFact(historyFacts);
       if (fact === null) {
-        if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
+        if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
           let suggestions = ['Headquarters'];
-          if (!assistant.data.catFacts || assistant.data.catFacts.length > 0) {
+          if (!app.data.catFacts || app.data.catFacts.length > 0) {
             suggestions.push('Cats');
           }
-          assistant.ask(assistant.buildRichResponse()
-            .addSimpleResponse(noFactsLeft(assistant, factCategory, FACT_TYPE.HEADQUARTERS))
+          app.ask(app.buildRichResponse()
+            .addSimpleResponse(noFactsLeft(app, factCategory, FACT_TYPE.HEADQUARTERS))
             .addSuggestions(suggestions), NO_INPUTS);
         } else {
-          assistant.ask(noFactsLeft(assistant, factCategory, FACT_TYPE.HEADQUARTERS),
+          app.ask(noFactsLeft(app, factCategory, FACT_TYPE.HEADQUARTERS),
             NO_INPUTS);
         }
         return;
       }
 
       let factPrefix = 'Sure, here\'s a history fact. ';
-      assistant.data.historyFacts = Array.from(historyFacts);
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
+      app.data.historyFacts = Array.from(historyFacts);
+      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
               let image = getRandomImage(GOOGLE_IMAGES);
-              assistant.ask(assistant.buildRichResponse()
+              app.ask(app.buildRichResponse()
                 .addSimpleResponse(factPrefix)
-                .addBasicCard(assistant.buildBasicCard(fact)
+                .addBasicCard(app.buildBasicCard(fact)
                   .addButton(LINK_OUT_TEXT, GOOGLE_LINK)
                   .setImage(image[0], image[1]))
                 .addSimpleResponse(NEXT_FACT_DIRECTIVE)
                 .addSuggestions(CONFIRMATION_SUGGESTIONS), NO_INPUTS);
             } else {
-              assistant.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE, NO_INPUTS);
+              app.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE, NO_INPUTS);
       }
       return;
     } else if (factCategory === FACT_TYPE.HEADQUARTERS) {
       let fact = getRandomFact(hqFacts);
       if (fact === null) {
-        if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
+        if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
 	          let suggestions = ['History'];
-	          if (!assistant.data.catFacts || assistant.data.catFacts.length > 0) {
+	          if (!app.data.catFacts || app.data.catFacts.length > 0) {
 	            suggestions.push('Cats');
 	          }
-	          assistant.ask(assistant.buildRichResponse()
-	            .addSimpleResponse(noFactsLeft(assistant, factCategory, FACT_TYPE.HISTORY))
+	          app.ask(app.buildRichResponse()
+	            .addSimpleResponse(noFactsLeft(app, factCategory, FACT_TYPE.HISTORY))
 	            .addSuggestions(suggestions), NO_INPUTS);
 	        } else {
-	          assistant.ask(noFactsLeft(assistant, factCategory, FACT_TYPE.HISTORY), NO_INPUTS);
+	          app.ask(noFactsLeft(app, factCategory, FACT_TYPE.HISTORY), NO_INPUTS);
         }
         return;
       }
 
       let factPrefix = 'Okay, here\'s a headquarters fact. ';
-      assistant.data.hqFacts = Array.from(hqFacts);
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
+      app.data.hqFacts = Array.from(hqFacts);
+      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
               let image = getRandomImage(GOOGLE_IMAGES);
-              assistant.ask(assistant.buildRichResponse()
+              app.ask(app.buildRichResponse()
                 .addSimpleResponse(factPrefix)
-                .addBasicCard(assistant.buildBasicCard(fact)
+                .addBasicCard(app.buildBasicCard(fact)
                   .setImage(image[0], image[1])
                   .addButton(LINK_OUT_TEXT, GOOGLE_LINK))
                 .addSimpleResponse(NEXT_FACT_DIRECTIVE)
                 .addSuggestions(CONFIRMATION_SUGGESTIONS), NO_INPUTS);
             } else {
-              assistant.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE, NO_INPUTS);
+              app.ask(factPrefix + fact + NEXT_FACT_DIRECTIVE, NO_INPUTS);
       }
       return;
     } else {
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-              assistant.ask(assistant.buildRichResponse()
+      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+              app.ask(app.buildRichResponse()
                 .addSimpleResponse(`Sorry, I didn't understand. I can tell you about \
       Fourth's history, or its  headquarters. Which one do you want to \
       hear about?`)
                 .addSuggestions(['History', 'Headquarters']), NO_INPUTS);
             } else {
-              assistant.ask(`Sorry, I didn't understand. I can tell you about \
+              app.ask(`Sorry, I didn't understand. I can tell you about \
       Fourth's history, or its headquarters. Which one do you want to \
       hear about?`, NO_INPUTS);
       }
@@ -250,24 +250,24 @@ app.post('/', function (req, res) {
   }
 
   // Say a cat fact
-  function tellCatFact (assistant) {
-    let catFacts = assistant.data.catFacts
-        ? new Set(assistant.data.catFacts) : CAT_FACTS;
+  function tellCatFact (app) {
+    let catFacts = app.data.catFacts
+        ? new Set(app.data.catFacts) : CAT_FACTS;
     let fact = getRandomFact(catFacts);
     if (fact === null) {
       let parameters = {};
       // Add fourth-facts context to outgoing context list
-      assistant.setContext(FOURTH_CONTEXT, DEFAULT_LIFESPAN,
+      app.setContext(FOURTH_CONTEXT, DEFAULT_LIFESPAN,
         parameters);
       // Replace outgoing cat-facts context with lifespan = 0 to end it
-      assistant.setContext(CAT_CONTEXT, END_LIFESPAN, {});
-      if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-              assistant.ask(assistant.buildRichResponse()
+      app.setContext(CAT_CONTEXT, END_LIFESPAN, {});
+      if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+              app.ask(app.buildRichResponse()
                 .addSimpleResponse('Looks like you\'ve heard all there is to know ' +
                   'about cats. Would you like to hear about Fourth?', NO_INPUTS)
                 .addSuggestions(CONFIRMATION_SUGGESTIONS));
             } else {
-              assistant.ask('Looks like you\'ve heard all there is to know ' +
+              app.ask('Looks like you\'ve heard all there is to know ' +
                 'about cats. Would you like to hear about Fourth?', NO_INPUTS);
       }
       return;
@@ -277,33 +277,33 @@ app.post('/', function (req, res) {
       '<audio src="' + MEOW_SRC + '"></audio>';
     let factSpeech = '<speak>' + factPrefix + fact +
       NEXT_FACT_DIRECTIVE + '</speak>';
-    assistant.data.catFacts = Array.from(catFacts);
-    if (assistant.hasSurfaceCapability(assistant.SurfaceCapabilities.SCREEN_OUTPUT)) {
-          assistant.ask(assistant.buildRichResponse()
+    app.data.catFacts = Array.from(catFacts);
+    if (app.hasSurfaceCapability(app.SurfaceCapabilities.SCREEN_OUTPUT)) {
+          app.ask(app.buildRichResponse()
             .addSimpleResponse(`<speak>${factPrefix}</speak>`)
-            .addBasicCard(assistant.buildBasicCard(fact)
+            .addBasicCard(app.buildBasicCard(fact)
               .setImage(CAT_IMAGE[0], CAT_IMAGE[1])
               .addButton(LINK_OUT_TEXT, CATS_LINK))
             .addSimpleResponse(NEXT_FACT_DIRECTIVE)
             .addSuggestions(CONFIRMATION_SUGGESTIONS), NO_INPUTS);
         } else {
-          assistant.ask(factSpeech,
+          app.ask(factSpeech,
             NO_INPUTS);
     }
     return;
   }
 
   // Say they've heard it all about this category
-  function noFactsLeft (assistant, currentCategory, redirectCategory) {
+  function noFactsLeft (app, currentCategory, redirectCategory) {
     let parameters = {};
     parameters[CATEGORY_ARGUMENT] = redirectCategory;
     // Replace the outgoing fourth-facts context with different parameters
-    assistant.setContext(FOURTH_CONTEXT, DEFAULT_LIFESPAN,
+    app.setContext(FOURTH_CONTEXT, DEFAULT_LIFESPAN,
         parameters);
     let response = `Looks like you've heard all there is to know \
         about the ${currentCategory} of Fourth. Would you like to hear \
         about its ${redirectCategory}? `;
-    if (!assistant.data.catFacts || assistant.data.catFacts.length > 0) {
+    if (!app.data.catFacts || app.data.catFacts.length > 0) {
       response += 'By the way, I can tell you about cats too.';
     }
     return response;
@@ -314,18 +314,18 @@ app.post('/', function (req, res) {
   actionMap.set(SAY_FOURTH_FACT, tellFourthFact);
   actionMap.set(SAY_CAT_FACT, tellCatFact);
 
-  assistant.handleRequest(actionMap);
+  app.handleRequest(actionMap);
 });
 // [END fourth_facts]
 
 if (module === require.main) {
   // [START server]
   // Start the server
-  let server = app.listen(process.env.PORT || 8080, function () {
+  let server = expressapp.listen(process.env.PORT || 8080, function () {
     let port = server.address().port;
     console.log('App listening on port %s', port);
   });
   // [END server]
 }
 
-module.exports = app;
+module.exports = expressapp;
