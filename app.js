@@ -132,7 +132,7 @@ function getRandomFact (facts) {
 
 // [START fourth_facts]
 app.post('/', function (req, res) {
-  const assistant = new App({request: req, response: res});
+  const assistant = new Assistant({request: req, response: res});
   console.log('Request headers: ' + JSON.stringify(req.headers));
   console.log('Request body: ' + JSON.stringify(req.body));
 
